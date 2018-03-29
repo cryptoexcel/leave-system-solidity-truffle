@@ -1,0 +1,54 @@
+.home-view{
+  .row{
+    .login-panel{
+      margin-top: 20vh;
+      background: #3e595e;
+      padding: 10px;
+    }
+    a{
+      display: block;
+      margin: 30px auto 0;
+      text-decoration: none;
+      span{
+        font-size: 50px;
+        font-family: Tuna;
+        text-transform: capitalize;
+      }
+    }
+    .form{
+      text-align: center;
+      padding: 10px 150px;
+      h1.heading{
+        padding: 10px 0;
+      }
+      input {
+          outline: none;
+          width: 100%;
+          border: 1px solid grey;
+          padding: 12px 15px;
+          margin: 0px;
+          &:nth-child(1){
+              border-bottom: 0;
+          }
+      }
+      button{
+          border: 1px solid grey;
+          background: #fff;
+          color: #000;
+          transition: .6s;
+          outline: none;
+          width: 40%;
+          padding: 10px 25px;
+          margin: 10px 0;
+          box-shadow: 0 0 2px 0 rgba(128,128,128,0.6);
+          &:hover{
+              background: #000;
+              color: #fff;
+              transition: .6s;
+              outline: none;
+              box-shadow: 0 2px 1px 0 rgba(128,128,128,0.6);                
+          }
+      }
+    }
+  }
+}
