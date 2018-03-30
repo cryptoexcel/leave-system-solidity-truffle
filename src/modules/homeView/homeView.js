@@ -1,14 +1,17 @@
 import React from 'react'
 import Header from '../../components/header/header'
 import './homeView.scss'
-import { getWeb3, getDefaultAccount, initContract, getAccountBalance, joinUser } from '../../utils/mockWeb3'
+import { getWeb3, getDefaultAccount, initContract, getAccountBalance, joinUser, resetLeaves } from '../../utils/mockWeb3'
 
 class HomeView extends React.Component{
     constructor(props){
         super(props);
         this.state = {
             email: 'reactexcel@excellence',
-            password: '123456'
+            password: '123456',
+            contract: false,
+            account: false,
+            balance: false,
         };
     }
 
@@ -64,7 +67,10 @@ class HomeView extends React.Component{
                                 <button onClick={() => this.onSubmitLogin()} >LOGIN</button>
                             </div>
                             <div className='col-sm-3'>
-                            
+                            <button onClick={() => resetLeaves(this.state.contract, this.state.account, this.state.account).then(tx => {
+                                console.log(tx);
+                                })
+                            }>Reset Leave</button>
                             </div>
                         </div>
                     </div>

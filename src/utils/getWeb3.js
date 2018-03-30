@@ -69,11 +69,51 @@ export const initContract = (web3Provider) => {
 
 export const joinUser = (contract, account, userId, leaveBalance) => {
   return new Promise((resolve, reject) => {
-
-    LeaveSystem.deployed().then((leaveContract) => {
+    return LeaveSystem.deployed().then((leaveContract) => {
       return leaveContract.joinUser(userId, leaveBalance, { from: account })
     }).then((obj) => {
       resolve(obj.tx);
     }).catch((err) => reject(err))
   });
 }
+
+export const resetLeaves = (contract, account, addr) => {
+  return new Promise((resolve, reject) => {
+    return LeaveSystem.deployed().then((leaveContract) => {
+      return leaveContract.resetLeaves(addr + "", { from: account })
+    }).then((obj) => {
+      resolve(obj.tx);
+    }).catch((err) => reject(err))
+  });
+}
+
+export const applyLeave = (contract, account, no_of_days, userId) => {
+  return new Promise((resolve, reject) => {
+    return LeaveSystem.deployed().then((leaveContract) => {
+      return leaveContract.applyLeave(no_of_days, userId, { from: account })
+    }).then((obj) => {
+      resolve(obj.tx);
+    }).catch((err) => reject(err))
+  });
+}
+
+export const approveLeave = (contract, account, index) => {
+  return new Promise((resolve, reject) => {
+    return LeaveSystem.deployed().then((leaveContract) => {
+      return leaveContract.approveLeave(index, { from: account })
+    }).then((obj) => {
+      resolve(obj.tx);
+    }).catch((err) => reject(err))
+  });
+}
+
+export const disallowLeave = (contract, account, index) => {
+  return new Promise((resolve, reject) => {
+    return LeaveSystem.deployed().then((leaveContract) => {
+      return leaveContract.disallowLeave(index, { from: account })
+    }).then((obj) => {
+      resolve(obj.tx);
+    }).catch((err) => reject(err))
+  });
+}
+
