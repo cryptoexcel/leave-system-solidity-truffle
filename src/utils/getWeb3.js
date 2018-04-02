@@ -62,14 +62,18 @@ export const getAccountBalance = (web3Provider, account) => {
 export const initContract = (web3Provider) => {
   return new Promise((resolve, reject) => {
 
-    LeaveSystem.setProvider(web3Provider.currentProvider )
+    LeaveSystem.setProvider(web3Provider.currentProvider)
     resolve(LeaveSystem);
   });
 }
 
+const getContract = (LeaveSystemContract) => {
+  return LeaveSystemContract.at('0xb60c5d8ce70552e39a4b06a2d7ada14d128b7bdd');
+}
+
 export const joinUser = (contract, account, userId, leaveBalance) => {
   return new Promise((resolve, reject) => {
-    return LeaveSystem.deployed().then((leaveContract) => {
+    return getContract(contract).then((leaveContract) => {
       return leaveContract.joinUser(userId, leaveBalance, { from: account })
     }).then((obj) => {
       resolve(obj.tx);
@@ -79,18 +83,36 @@ export const joinUser = (contract, account, userId, leaveBalance) => {
 
 export const resetLeaves = (contract, account, addr) => {
   return new Promise((resolve, reject) => {
-    return LeaveSystem.deployed().then((leaveContract) => {
-      return leaveContract.resetLeaves(addr + "", { from: account })
+    return getContract(contract).then((leaveContract) => {
+      return leaveContract.resetLeaves(web3.toHex(addr), { from: account })
     }).then((obj) => {
       resolve(obj.tx);
     }).catch((err) => reject(err))
   });
 }
 
-export const applyLeave = (contract, account, no_of_days, userId) => {
+export const getUser = (contract, account, addr) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getUser(web3.toHex(addr), { from: account })
+      .then((obj) => {
+        return web3.toDecimal(obj);
+      })
+  })
+}
+
+export const getMyLeaves = (contract, account, addr) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getMyLeaves(web3.toHex(addr), { from: account })
+      .then((obj) => {
+        return web3.toDecimal(obj);
+      })
+  })
+}
+
+export const applyLeave = (contract, account, no_of_days) => {
   return new Promise((resolve, reject) => {
-    return LeaveSystem.deployed().then((leaveContract) => {
-      return leaveContract.applyLeave(no_of_days, userId, { from: account })
+    return getContract(contract).then((leaveContract) => {
+      return leaveContract.applyLeave(no_of_days, { from: account })
     }).then((obj) => {
       resolve(obj.tx);
     }).catch((err) => reject(err))
@@ -99,7 +121,7 @@ export const applyLeave = (contract, account, no_of_days, userId) => {
 
 export const approveLeave = (contract, account, index) => {
   return new Promise((resolve, reject) => {
-    return LeaveSystem.deployed().then((leaveContract) => {
+    return getContract(contract).then((leaveContract) => {
       return leaveContract.approveLeave(index, { from: account })
     }).then((obj) => {
       resolve(obj.tx);
@@ -109,7 +131,7 @@ export const approveLeave = (contract, account, index) => {
 
 export const disallowLeave = (contract, account, index) => {
   return new Promise((resolve, reject) => {
-    return LeaveSystem.deployed().then((leaveContract) => {
+    return getContract(contract).then((leaveContract) => {
       return leaveContract.disallowLeave(index, { from: account })
     }).then((obj) => {
       resolve(obj.tx);
@@ -117,3 +139,79 @@ export const disallowLeave = (contract, account, index) => {
   });
 }
 
+export const addEmployeeLeave = (contract, account, addr, leaves) => {
+  return new Promise((resolve, reject) => {
+    return getContract(contract).then((leaveContract) => {
+      return leaveContract.addEmployeeLeave(web3.toHex(addr), leaves, { from: account })
+    }).then((obj) => {
+      resolve(obj.tx);
+    }).catch((err) => reject(err))
+  });
+}
+
+export const getLeaveList = (contract, account) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getLeaveList({ from: account })
+      .then((obj) => {
+        let leavesIndexs = [];
+        for (let i = 0; i < obj.length; i++) {
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          }
+        }
+        return Promise.all(leavesIndexs);
+      })
+  })
+}
+
+export const getEmployeePendingLeaveList = (contract, account) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getEmployeePendingLeaveList({ from: account })
+      .then((obj) => {
+        let leavesIndexs = [];
+        for (let i = 0; i < obj.length; i++) {
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          }
+        }
+        return Promise.all(leavesIndexs);
+      })
+  })
+}
+
+export const getEmployeeApprovedLeaveList = (contract, account) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getEmployeeApprovedLeaveList({ from: account })
+      .then((obj) => {
+        let leavesIndexs = [];
+        for (let i = 0; i < obj.length; i++) {
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          }
+        }
+        return Promise.all(leavesIndexs);
+      })
+  })
+}
+
+
+
+export const getLeaveDetail = (contract, account, index) => {
+  return getContract(contract).then((leaveContract) => {
+    return leaveContract.getLeaveDetail(web3.toDecimal(index), { from: account })
+      .then((obj) => {
+        return {
+          id: web3.toDecimal(obj[0]),
+          no_of_days: web3.toDecimal(obj[1]),
+          approved: obj[2],
+          by: web3.toHex(obj[3]),
+          action_at: web3.toDecimal(obj[4]),
+          action_by: web3.toHex(obj[5])
+        }
+      })
+  })
+}
+
+// export const approveLeave = (contract, account, index) => {
+
+// }

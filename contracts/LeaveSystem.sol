@@ -48,19 +48,78 @@ contract LeaveSystem {
 	    
 	    UserJoined(msg.sender);
 	}
-	
-	function resetLeaves(address addr) public isOwner {
-	    delete leaveBalance[addr];
+
+	//get user details. this will simply check if user 
+	//exists or not. it will return 0 if user doesn't exist
+	function getUser(address addr) public constant returns (uint){
+		return leaveBalance[addr].id;
+	}
+
+	function getMyLeaves(address addr) public constant returns (uint) {
+		return leaveBalance[addr].leaves;
 	}
 	
-	function applyLeave(uint no_days, uint id) public{
+	function resetLeaves(address addr) public isOwner {
+	    delete leaveBalance[addr].leaves;
+	}
+	
+	function applyLeave(uint no_days) public{
 	     require(no_days > 0);
 	     if(leaveBalance[msg.sender].id == 0) revert();
 	     require(leaveBalance[msg.sender].leaves > no_days);
 	     
+	     uint id = leaveBalance[msg.sender].id;
 	     Leave memory leave = Leave(id,no_days, false, msg.sender,0,address(0));
 	     leaves.push(leave);
 	     LeaveApplied(msg.sender,no_days);
+	}
+	
+	function getLeaveList() public constant returns (uint[]) {
+	    //maximum restriction of 80 leaves
+	    uint[] memory indexs = new uint[](80);
+	    uint j = 0;
+	    for(uint i=0;i<leaves.length;i++){
+	        if(leaves[i].by == msg.sender){
+	            indexs[j] = i+1;
+	            j++;
+	        }
+	    }
+	    return indexs;
+	}
+	
+	function getEmployeeApprovedLeaveList() public isOwner constant returns (uint[]){
+	    //maximum restriction of 80 leaves
+	    uint[] memory indexs = new uint[](80);
+	    uint j = 0;
+	    for(uint i=0;i<leaves.length;i++){
+	        if(leaves[i].approved){
+	            indexs[j] = i+1;
+	            j++;
+	        }
+	    }
+	    return indexs;
+	}
+	
+	function getEmployeePendingLeaveList() public isOwner constant returns (uint[]){
+	    //maximum restriction of 80 leaves
+	    uint[] memory indexs = new uint[](80);
+	    uint j = 0;
+	    for(uint i=0;i<leaves.length;i++){
+	        if(!leaves[i].approved){
+	            indexs[j] = i+1;
+	            j++;
+	        }
+	    }
+	    return indexs;
+	}
+	
+	function getLeaveDetail(uint index) public constant returns (uint, uint, bool, address, uint, address){
+        Leave memory _leave = leaves[index];
+        if(_leave.by == msg.sender || msg.sender == owner){
+            return (_leave.id, _leave.no_days, _leave.approved, _leave.by, _leave.action_at, _leave.action_by);
+        }else{
+            revert();
+        }
 	}
 	
 	function approveLeave(uint leave_index) public isOwner{
@@ -91,15 +150,5 @@ contract LeaveSystem {
 	//employee earn leaves every month
 	function addEmployeeLeave(address employee, uint monthly_leaves) public isOwner {
 	    leaveBalance[employee].leaves += monthly_leaves;
-	}
-	
-	//each user can his leave balance
-	function getLeaveBalance() public constant returns (uint){
-	    return leaveBalance[msg.sender].leaves;
-	}
-	
-	// get leave balance of any employee
-	function getEmployeeLeaveBalance(address addr) public isOwner constant returns (uint){
-	    return (leaveBalance[addr].leaves);
 	}
 }
