@@ -7,7 +7,6 @@ const LeaveSystem = contract(LeaveSystemContract)
 export const getWeb3 = new Promise(function (resolve, reject) {
   // Wait for loading completion to avoid race conditions with web3 injection timing.
   window.addEventListener('load', function () {
-    var web3 = window.web3
 
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     if (typeof web3 !== 'undefined') {
@@ -18,6 +17,7 @@ export const getWeb3 = new Promise(function (resolve, reject) {
 
       resolve(web3)
     } else {
+      console.log('No web3? You should consider trying MetaMask!')
       // Fallback to localhost if no web3 injection. We've configured this to
       // use the development console's port by default.
       var provider = new Web3.providers.HttpProvider('http://127.0.0.1:9545')
@@ -68,7 +68,7 @@ export const initContract = (web3Provider) => {
 }
 
 const getContract = (LeaveSystemContract) => {
-  return LeaveSystemContract.at('0xb60c5d8ce70552e39a4b06a2d7ada14d128b7bdd');
+  return LeaveSystemContract.at('0xe8320df1e6c83e7f212f7e54c04a9dd8b1debda9');
 }
 
 export const joinUser = (contract, account, userId, leaveBalance) => {

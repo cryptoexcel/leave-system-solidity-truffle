@@ -20,6 +20,15 @@ import {
 }
     from '../../utils/getWeb3'
 
+
+import {
+    initTokenContract,
+    getTokenContract,
+    getTokenBalance,
+    transferToken
+} from '../../utils/erc20-etech'
+
+
 class HomeView extends React.Component {
     constructor(props) {
         super(props);
@@ -29,6 +38,7 @@ class HomeView extends React.Component {
             contract: false,
             account: false,
             balance: false,
+            token_contract: false
         };
     }
 
@@ -45,11 +55,21 @@ class HomeView extends React.Component {
                                 return getAccountBalance(web3, account)
                                     .then(balance => {
                                         console.log(balance);
-                                        this.setState({
-                                            account,
-                                            balance,
-                                            contract
+
+                                        return initTokenContract(web3)
+                                        .then( (token_contract) => {
+                                            console.log(token_contract ,"token contract");
+
+
+                                            this.setState({
+                                                account,
+                                                balance,
+                                                contract,
+                                                token_contract
+                                            })
                                         })
+
+                                        
                                     })
                             });
                     });
@@ -173,7 +193,22 @@ class HomeView extends React.Component {
                                 }
                                 }>Get Employee Approved Leave List</button>
 
-                                
+                                <button onClick={() => {
+                                    getTokenBalance(this.state.token_contract, this.state.account).then(tx => {
+                                        console.log(tx);
+                                    })
+                                }
+                                }>Get Token Balance</button>
+
+
+                                <button onClick={() => {
+                                    let address = prompt('To whom do you want to transfer token', "");
+                                    let amount = prompt('how many tokens do you want to transfer', 100);
+                                    transferToken(this.state.token_contract, this.state.account,address,amount).then(tx => {
+                                        console.log(tx);
+                                    })
+                                }
+                                }>Transfer Token</button>
 
                             </div>
                         </div>
