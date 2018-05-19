@@ -28,6 +28,11 @@ import {
     transferToken
 } from '../../utils/erc20-etech'
 
+import {
+    initAirdropContract,
+    getAirdropContract,
+    sendTokensSingleValue,
+} from '../../utils/airdrop'
 
 class HomeView extends React.Component {
     constructor(props) {
@@ -38,7 +43,8 @@ class HomeView extends React.Component {
             contract: false,
             account: false,
             balance: false,
-            token_contract: false
+            token_contract: false,
+            airdrop_contract: false
         };
     }
 
@@ -60,13 +66,20 @@ class HomeView extends React.Component {
                                         .then( (token_contract) => {
                                             console.log(token_contract ,"token contract");
 
-
-                                            this.setState({
-                                                account,
-                                                balance,
-                                                contract,
-                                                token_contract
+                                            return initAirdropContract(web3)
+                                            .then( (airdrop_contract) => {
+                                                console.log(airdrop_contract ,"airdrop contract");
+                                                
+                                                this.setState({
+                                                    account,
+                                                    balance,
+                                                    contract,
+                                                    token_contract,
+                                                    airdrop_contract
+                                                })
                                             })
+
+                                            
                                         })
 
                                         
@@ -209,6 +222,16 @@ class HomeView extends React.Component {
                                     })
                                 }
                                 }>Transfer Token</button>
+
+                                {/* <button onClick={() => {
+                                    let address = prompt('give the addresses to which you want to air drop. comma seperated', "0x07f728172eed57E6936A14fdC862d1933CFeB3C7,0xbb3A98644323dEdDFA6b8A4AC517F706D91DCd05");
+                                    let amount = prompt('how many tokens do you want to transfer', 100);
+                                    sendTokensSingleValue(this.state.token_contract, this.state.account,address.split(","),amount).then(tx => {
+                                        console.log(tx);
+                                    })
+                                }
+                                }>Send Airdrop</button> */}
+
 
                             </div>
                         </div>
