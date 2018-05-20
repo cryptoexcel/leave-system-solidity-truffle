@@ -14,6 +14,11 @@ const walletFactory = require('ethereumjs-wallet')
 var Web3 = require('web3');
 var Transaction = require('ethereumjs-tx');
 
+import {
+    initAirdropContract,
+    tokensAvailable,
+    sendTokensSingleValue
+  } from "./airdrop"
 
 const contract = require('truffle-contract');
 

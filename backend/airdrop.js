@@ -20,7 +20,7 @@ const getAirdropContract = (Airdrop) => {
 export const sendTokensSingleValue = (contract, account, addresses, amount) => {
   return new Promise((resolve, reject) => {
     return getAirdropContract(contract).then((airdropContract) => {
-      return airdropContract.sendTokensSingleValue(addresses, amount, { from: account })
+      return airdropContract.sendTokensSingleValue(addresses, amount)
     }).then((obj) => {
       resolve(obj);
     }).catch((err) => reject(err))

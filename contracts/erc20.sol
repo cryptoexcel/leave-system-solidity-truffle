@@ -1,10 +1,10 @@
 pragma solidity ^0.4.19;
 // ----------------------------------------------------------------------------
-// '0Fucks' token contract
+// 'ETECH' token contract
 //
-// Deployed to : 0x5A86f0cafD4ef3ba4f0344C138afcC84bd1ED222
-// Symbol      : 0FUCKS
-// Name        : 0 Fucks Token
+// Deployed to : 0x8bc0978B628C93c86aE79e53017b30363FE81840
+// Symbol      : ETECH
+// Name        : Excellece Technologies Token
 // Total supply: 100000000
 // Decimals    : 18
 //

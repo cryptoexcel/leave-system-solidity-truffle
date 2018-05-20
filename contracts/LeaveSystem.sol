@@ -1,3 +1,5 @@
+//leave management contrct without any toke, managed internally via array
+
 pragma solidity ^0.4.19;
 
 contract LeaveSystem {
@@ -27,7 +29,7 @@ contract LeaveSystem {
 	modifier isOwner { require(msg.sender == owner); _; }
 	
 	//constructor
-	function LeaveSystem() public {
+	constructor() public {
 	    owner = msg.sender;
 	}
 	

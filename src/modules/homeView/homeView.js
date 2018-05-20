@@ -28,11 +28,6 @@ import {
     transferToken
 } from '../../utils/erc20-etech'
 
-import {
-    initAirdropContract,
-    getAirdropContract,
-    sendTokensSingleValue,
-} from '../../utils/airdrop'
 
 class HomeView extends React.Component {
     constructor(props) {
@@ -63,26 +58,24 @@ class HomeView extends React.Component {
                                         console.log(balance);
 
                                         return initTokenContract(web3)
-                                        .then( (token_contract) => {
-                                            console.log(token_contract ,"token contract");
+                                            .then((token_contract) => {
+                                                console.log(token_contract, "token contract");
 
-                                            return initAirdropContract(web3)
-                                            .then( (airdrop_contract) => {
-                                                console.log(airdrop_contract ,"airdrop contract");
-                                                
+
+
                                                 this.setState({
                                                     account,
                                                     balance,
                                                     contract,
                                                     token_contract,
-                                                    airdrop_contract
+
                                                 })
+
+
+
                                             })
 
-                                            
-                                        })
 
-                                        
                                     })
                             });
                     });
@@ -173,7 +166,7 @@ class HomeView extends React.Component {
                                 }
                                 }>Get My Leave Details</button>
 
-                                
+
 
                                 <button onClick={() => {
                                     getEmployeePendingLeaveList(this.state.contract, this.state.account).then(tx => {
@@ -217,7 +210,7 @@ class HomeView extends React.Component {
                                 <button onClick={() => {
                                     let address = prompt('To whom do you want to transfer token', "");
                                     let amount = prompt('how many tokens do you want to transfer', 100);
-                                    transferToken(this.state.token_contract, this.state.account,address,amount).then(tx => {
+                                    transferToken(this.state.token_contract, this.state.account, address, amount).then(tx => {
                                         console.log(tx);
                                     })
                                 }
