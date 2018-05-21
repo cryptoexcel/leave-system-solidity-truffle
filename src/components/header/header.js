@@ -9,6 +9,9 @@ class Header extends React.Component{
                 <div className="row header">
                     <span alt="Excellence Technologies"></span>
                 </div>
+                <div>
+                    <a href="#">Admin Area</a>
+                </div>
             </a>
         );
     }

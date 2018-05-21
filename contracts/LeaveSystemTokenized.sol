@@ -57,7 +57,7 @@ contract LeaveSystemTokenized {
 	    emit UserJoined(msg.sender);
 	}
     
-    function addUser(address addr, uint userId) public  {
+    function addUser(address addr, uint userId) public isOwner {
         
         require(userId > 0);  //actual database user id from hr system
 	    
@@ -67,14 +67,20 @@ contract LeaveSystemTokenized {
 	    emit UserJoined(addr);
     }
     
+    function getUser() public constant returns (uint){
+		return employees[msg.sender].id;
+	}
+
+	function getMyLeaves() public isEmployee constant returns (uint) {
+		uint balance = token.balanceOf(msg.sender);
+		return balance;
+	}  
     
-	//get user details. this will simply check if user 
-	//exists or not. it will return 0 if user doesn't exist
-	function getUser(address addr) public constant returns (uint){
+	function getUserId(address addr) public isOwner constant returns (uint){
 		return employees[addr].id;
 	}
 
-	function getMyLeaves(address addr) public isEmployee constant returns (uint) {
+	function getLeaves(address addr) public isOwner constant returns (uint) {
 		uint balance = token.balanceOf(addr);
 		return balance;
 	}   
@@ -82,16 +88,49 @@ contract LeaveSystemTokenized {
 	function applyLeave(uint no_days) public isEmployee {
 	     require(no_days > 0);
 	     
-         uint empLeaves = token.balanceOf(msg.sender);
+         uint allowance = token.allowance(msg.sender,this);
 
-	     require(empLeaves > no_days * 10 ** 18);
-
-         require(token.transfer(owner, no_days * 10 ** 18));
+	     require(allowance >= no_days * 10 ** 18);
+	     
 	     
 	     uint id = employees[msg.sender].id;
 	     Leave memory leave = Leave(id,no_days, false, msg.sender,0,address(0));
 	     leaves.push(leave);
 	     emit LeaveApplied(msg.sender,no_days);
+	}
+	
+	function approveLeave(uint leave_index) public isOwner{
+	    
+	    
+	    Leave memory leave = leaves[leave_index];
+	    
+	    token.transferFrom(leave.by, this, leave.no_days);
+	    
+	    leave.approved = true;
+	    leave.action_by = msg.sender;
+	    leave.action_at = now;
+	    leaves[leave_index] = leave;
+	    //delete leaves[leave_index];
+	    // if we don't delete the leaves it will keep on charging more gas.
+	    // https://ethereum.stackexchange.com/questions/872/what-is-the-cost-to-store-1kb-10kb-100kb-worth-of-data-into-the-ethereum-block
+	    // so need a better solution
+	    // but we need to keep all leave history as well.
+	    emit LeaveApproved(leave_index);
+	}
+	
+	function disallowLeave(uint leave_index) public isOwner{
+
+        
+
+	    Leave memory leave = leaves[leave_index];
+
+        require(token.transfer(leave.by, leave.no_days * 10 ** 18));
+
+	    leave.approved = false;
+	    leave.action_by = msg.sender;
+	    leave.action_at = now;
+	    leaves[leave_index] = leave;
+	    emit LeaveDisallowed(leave_index);
 	}
 	
 	function getLeaveList() public constant returns (uint[]) {
@@ -142,34 +181,7 @@ contract LeaveSystemTokenized {
         }
 	}
 	
-	function approveLeave(uint leave_index) public isOwner{
-	    Leave memory leave = leaves[leave_index];
-	    leave.approved = true;
-	    leave.action_by = msg.sender;
-	    leave.action_at = now;
-	    leaves[leave_index] = leave;
-	    //delete leaves[leave_index];
-	    // if we don't delete the leaves it will keep on charging more gas.
-	    // https://ethereum.stackexchange.com/questions/872/what-is-the-cost-to-store-1kb-10kb-100kb-worth-of-data-into-the-ethereum-block
-	    // so need a better solution
-	    // but we need to keep all leave history as well.
-	    emit LeaveApproved(leave_index);
-	}
 	
-	function disallowLeave(uint leave_index) public isOwner{
-
-        
-
-	    Leave memory leave = leaves[leave_index];
-
-        require(token.transfer(leave.by, leave.no_days * 10 ** 18));
-
-	    leave.approved = false;
-	    leave.action_by = msg.sender;
-	    leave.action_at = now;
-	    leaves[leave_index] = leave;
-	    emit LeaveDisallowed(leave_index);
-	}
 	
 	//employee earn leaves every month
 	function addEmployeeLeave(address employee, uint monthly_leaves) public isOwner {

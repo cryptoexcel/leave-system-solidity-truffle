@@ -1,41 +1,39 @@
 import Web3 from 'web3'
 import contract from 'truffle-contract'
-import ERC20Contract from '../../build/contracts/ETECHToken.json'
+import ERC20ContractJSON from '../../build/contracts/ETECHToken.json'
 
-const ERC20 = contract(ERC20Contract)
+const ERC20Contract = contract(ERC20ContractJSON)
+const ERC20_TOKEN_ADDRESS = '0x8bc0978b628c93c86ae79e53017b30363fe81840'
 
-export const initTokenContract = (web3Provider) => {
-  return new Promise((resolve, reject) => {
+export class ERC20 {
+  contract = false;
+  account = false
+  web3Provider = false;
+  web3 = false;
+  constructor(web3Provider, account) {
+    this.web3 = new Web3(web3Provider)
+    this.web3Provider = web3Provider;
+    this.account = account;
+    ERC20Contract.setProvider(web3Provider.currentProvider)
+    ERC20Contract.at(ERC20_TOKEN_ADDRESS).then((contract) => {
+      this.contract = contract;
+    })
+  }
+  getTokenBalance = () => {
+    return this.contract.balanceOf({ from: this.account })
 
-    ERC20.setProvider(web3Provider.currentProvider)
-    resolve(ERC20Contract);
-  });
+  }
+  transferToken = (to, amount) => {
+    return this.contract.transfer(web3.toHex(to), amount * 1, { from: this.account })
+  }
+  approve = (to, amount) => {
+    return this.contract.approve(web3.toHex(to), amount * 1, { from: this.account })
+  }
+  allowance = (owner) => {
+    return this.contract.allowance(web3.toHex(this.account), web3.toHex(owner), { from: this.account })
+      .then((obj) => {
+        return web3.toDecimal(obj);
+      })
+  }
 }
 
-
-const getTokenContract = (ERC20Contract) => {
-    return ERC20.at('0x8bc0978b628c93c86ae79e53017b30363fe81840');
-}
-
-
-export const getTokenBalance = (contract, account) => {
-  return new Promise((resolve, reject) => {
-    return getTokenContract(contract).then((tokenContract) => {
-      return tokenContract.balanceOf(account, { from: account })
-    }).then((obj) => {
-      resolve(web3.toDecimal(obj));
-    }).catch((err) => reject(err))
-  });
-}
-
-
-//0x07f728172eed57E6936A14fdC862d1933CFeB3C7
-export const transferToken = (contract, account, to , amount) => {
-  return new Promise((resolve, reject) => {
-    return getTokenContract(contract).then((tokenContract) => {
-      return tokenContract.transfer(web3.toHex(to), amount*1, { from: account })
-    }).then((obj) => {
-      resolve(obj);
-    }).catch((err) => reject(err))
-  });
-}

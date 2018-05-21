@@ -1,72 +1,61 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import {bindActionCreators} from 'redux'
-import * as actions from '../../redux/actions'
-import Header from '../../components/header/header'
 import './login.scss'
+import swal from 'sweetalert';
+import Transaction from '../../components/transaction/transaction';
 
-class Login extends React.Component{
-    constructor(props){
-        super(props)
-        this.state={
-            email: 'abhishek@excellence',
-            password: '123456'
-        }
-        this.onSubmitLogin = this.onSubmitLogin.bind(this);
+class LoginView extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            email: '',
+            password: '',
+            execTx: false
+        };
     }
-    onSubmitLogin(){
-        const { email, password } = this.state;
-        this.props.userLoginRequest({email: email, password: password, ddid: 0});
+    guestLogin() {
+        let userId = Math.floor( Math.random()*10000 )
+        console.log("joining user with id " + userId); 
+        let tx = this.props.leaveContract.joinUser(userId);
+        this.setState({
+            execTx: tx
+        })    
+            
     }
-    render(){
-        console.log(this.props);
+    onSubmitLogin() {
+        swal("Oops!!", "Integration with hr system is pending, click on guest option for now")
+    }
+    _renderCreateAccount() {
         const { email, password } = this.state;
-        return(
-            <div className='login-view container-fluid'>
-                <Header title='Warehouse' />                
-                <div className='row'>
-                    <div className='col-sm-12'>
-                        <div className='row'>
-                            <div className='col-sm-3'></div>
-                            <div className='col-sm-6 form'>
-                                <input
-                                    type='text'
-                                    placeholder='Email'
-                                    value={email}
-                                    onChange={(e) => this.setState({email: e.target.value})}
-                                />
-                                <input
-                                    type='password'
-                                    placeholder='Password'
-                                    value={password}
-                                    onChange={(e) => this.setState({password: e.target.value})}
-                                />
-                                <button onClick={() => this.onSubmitLogin()} >LOGIN</button>
-                            </div>
-                            <div className='col-sm-3'>
-                                <div>
-                                    <span className={this.props.login.userLogin.data.token ? 'text-success' : 'none'}>
-                                        <strong>LOGGED IN</strong>
-                                        <br/><strong>Token:</strong> {this.props.login.userLogin.data.token}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        return (
+            <div className='row'>
+                Since you don't have account already, authenticate your account with our HR system.
+                so we can validate it.
+                <div className='col-sm-12 form'>
+                    <h1 className='heading' > LOGIN </h1>
+                    <input
+                        type='text'
+                        placeholder='Email'
+                        value={email}
+                        onChange={(e) => this.setState({ email: e.target.value })}
+                    />
+                    <input
+                        type='password'
+                        placeholder='Password'
+                        value={password}
+                        onChange={(e) => this.setState({ password: e.target.value })}
+                    />
+                    <button onClick={() => this.onSubmitLogin()} >LOGIN</button>
+                    <button onClick={() => this.guestLogin()} >Login As Guest</button>
                 </div>
+
+                {this.state.execTx ? <Transaction execTx={this.state.execTx} /> : null}
+
             </div>
-        );
+        )
+    }
+    render() {
+        return this.props.userId === 0 ? this._renderCreateAccount() : null
     }
 }
 
-export function mapStateToProps(state) {
-    return {
-        login: state.login
-    };
-}
-
-function mapDispatchToProps(dispatch) {
-    return bindActionCreators(actions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default LoginView;
