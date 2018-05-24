@@ -7,14 +7,9 @@ import { ERC20 } from '../../utils/erc20-etech'
 import swal from 'sweetalert';
 import LoginView from '../login/login';
 import ApplyLeaveView from '../applyLeave/applyLeave'
-
-// import {
-//     initTokenContract,
-//     getTokenContract,
-//     getTokenBalance,
-//     transferToken
-// } from '../../utils/erc20-etech'
-
+import LeaveList from '../leaves/leaves'
+import { HRSystem } from '../../utils/hr'
+import BuyLeave from '../buyleave/buyleave'
 
 class HomeView extends React.Component {
     constructor(props) {
@@ -26,7 +21,10 @@ class HomeView extends React.Component {
             leaveContract: false,
             userId: false,
             leavesBalance: false,
-            erc20Contract: false
+            erc20Contract: false,
+            hrsystem: false,
+            message: false,
+            isUserInContract: false
         };
     }
     componentDidMount() {
@@ -37,6 +35,7 @@ class HomeView extends React.Component {
         console.log("init app....")
         new Web3Util().initWeb3()
             .then((state) => {
+                state.hrsystem = new HRSystem();
                 state.erc20Contract = new ERC20(state.web3, state.account);
                 state.leaveContract = new LeaveContarct(state.web3, state.account)
                 this.setState(state, () => {
@@ -76,14 +75,12 @@ class HomeView extends React.Component {
         this.state.leaveContract.getMyLeaves().then((leavesBalance) => {
 
             this.setState({
-                leavesBalance
+                leavesBalance: leavesBalance / (10 ** 18)
             })
             if (leavesBalance > 0) {
-                swal({
-                    title: "Good Job!!",
-                    text: "You are already part of Excellence Blockchain based leave system!!!",
-                    icon: "success"
-                });
+                this.setState({
+                    message: "You are already part of Excellence Blockchain based leave system!!!",
+                })
             }
 
         })
@@ -93,19 +90,33 @@ class HomeView extends React.Component {
             .then((userId) => {
                 if (userId > 0) {
                     this.setState({
-                        userId
+                        userId,
+                        isUserInContract: true
                     })
 
                     this.checkUserLeaves();
 
                 } else {
-                    swal("Oops!!", "You are not part of our system, you need to create account", "error");
                     this.setState({
+                        message: "You are not part of our system, you need to create account",
+                        isUserInContract: false,
                         leavesBalance: 0,
                         userId: 0
                     })
                 }
             })
+    }
+    onUsersLogin(profile) {
+        this.setState({
+            userId: profile.id
+        })
+    }
+    _renderMessage() {
+        return (
+            <div className="alert alert-secondary" role="alert">
+                {this.state.message}
+            </div>
+        )
     }
     render() {
         if (!this.state.web3) {
@@ -119,140 +130,18 @@ class HomeView extends React.Component {
                 <div className='row'>
                     <div className='col-sm-12'>
                         <div className='row'>
-
-                            <div>
-                                Account Found: {this.state.account}
-                            </div>
-                            <br />
-                            <div>
-                                Ether balance {this.state.balance}
-                            </div>
-                            <br />
-                            <div>
-                                User ID: {this.state.userId}
-                            </div>
-                            <br />
-                            <div>
-                                Leave Balance: {this.state.leavesBalance}
-                            </div>
+                            {this.state.message ? this._renderMessage() : null}
+                            <ul className="list-group">
+                                <li className="list-group-item">Account Found: {this.state.account}</li>
+                                <li className="list-group-item">Ether balance {this.state.balance}</li>
+                                <li className="list-group-item">User ID: {this.state.userId}</li>
+                                <li className="list-group-item">Leave Balance: {this.state.leavesBalance}</li>
+                            </ul>
                         </div>
-                        <LoginView {...this.state} />
-                        {this.state.leavesBalance === 0 ? "You don't have any tokens so you cannot apply for leave. So either wait for airdrop of tokens which is done 1st of every month or you tokens with ETH" : null}
+                        {this.state.userId !== false ? <LoginView onJoinContract={() => { this.checkIfUserExists(); }} onUserLogin={(obj) => this.onUsersLogin(obj)} {...this.state} /> : null}
+                        {this.state.leavesBalance === 0 ? <BuyLeave {...this.state} /> : null}
                         {this.state.leavesBalance > 0 ? <ApplyLeaveView {...this.state} /> : null}
-                        {/** 
-                            
-                            <div className='col-sm-3'>
-                                <button onClick={() => {
-                                    let userId = prompt('whats your user id from hr system', 101);
-                                    let leaveBalance = prompt('Whats your Leave balance from hr system', 10);
-                                    joinUser(this.state.contract, this.state.account, userId, leaveBalance).then(tx => {
-                                        console.log(tx);
-                                    });
-                                }}
-                                >JOIN USER</button>
-                                <button onClick={() => {
-                                    let address = prompt('What your address', this.state.account);
-                                    resetLeaves(this.state.contract, this.state.account, address).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Reset Leave</button>
-                                <button onClick={() => {
-                                    let address = prompt('Put eth address for which you need see user id', this.state.account);
-                                    getUser(this.state.contract, this.state.account, address).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Does User Existing In System?</button>
-
-                                <button onClick={() => {
-                                    let address = prompt('Put eth address for which you need see leave balace', this.state.account);
-                                    getMyLeaves(this.state.contract, this.state.account, address).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Get My Leave Balance</button>
-
-                                <button onClick={() => {
-                                    let address = prompt('How many leaves do you want to apply', 1);
-                                    applyLeave(this.state.contract, this.state.account, address).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Apply Leave</button>
-
-                                <button onClick={() => {
-                                    let leave = prompt('How many leaves do you want to give to employee', 1);
-                                    let address = prompt('which employee do you want to give the leaves to', this.state.account)
-                                    addEmployeeLeave(this.state.contract, this.state.account, address, leave).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Add Leaves For Employeee</button>
-
-
-                                <button onClick={() => {
-                                    getLeaveList(this.state.contract, this.state.account).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Get My Leave Details</button>
-
-
-
-                                <button onClick={() => {
-                                    getEmployeePendingLeaveList(this.state.contract, this.state.account).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Get All Employee Pending Leaves</button>
-
-                                <button onClick={() => {
-                                    let index = prompt('give index of leave which you want to approve', 0);
-                                    approveLeave(this.state.contract, this.state.account, index).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Approve Leave</button>
-
-
-                                <button onClick={() => {
-                                    let index = prompt('give index of leave which you want to disallow', 0);
-                                    disallowLeave(this.state.contract, this.state.account, index).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Disallow Leave</button>
-
-                                <button onClick={() => {
-                                    getEmployeeApprovedLeaveList(this.state.contract, this.state.account, index).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Get Employee Approved Leave List</button>
-
-                                <button onClick={() => {
-                                    getTokenBalance(this.state.token_contract, this.state.account).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Get Token Balance</button>
-
-
-                                <button onClick={() => {
-                                    let address = prompt('To whom do you want to transfer token', "");
-                                    let amount = prompt('how many tokens do you want to transfer', 100);
-                                    transferToken(this.state.token_contract, this.state.account, address, amount).then(tx => {
-                                        console.log(tx);
-                                    })
-                                }
-                                }>Transfer Token</button>
-                                 </div>
-                                */}
-
-
-
-
+                        {this.state.userId > 0 ? <LeaveList {...this.state} /> : null}
                     </div>
                 </div>
             </div >

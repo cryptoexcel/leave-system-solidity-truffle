@@ -46,6 +46,9 @@ contract LeaveSystemTokenized {
 	event LeaveApproved(uint leave_index);
 	event LeaveDisallowed(uint leave_index);
 	
+	function isContractOwner() public constant returns (bool){
+	    return msg.sender == owner;
+	}
 	//function to add user to contract
 	function joinUser(uint userId) public {
 	    require(userId > 0);  //actual database user id from hr system
@@ -83,18 +86,18 @@ contract LeaveSystemTokenized {
 	function getLeaves(address addr) public isOwner constant returns (uint) {
 		uint balance = token.balanceOf(addr);
 		return balance;
-	}   
+	} 
 	
-	function applyLeave(uint no_days) public isEmployee {
+
+	function applyLeave(uint leave_id, uint no_days) public isEmployee {
 	     require(no_days > 0);
 	     
          uint allowance = token.allowance(msg.sender,this);
 
 	     require(allowance >= no_days * 10 ** 18);
 	     
-	     
-	     uint id = employees[msg.sender].id;
-	     Leave memory leave = Leave(id,no_days, false, msg.sender,0,address(0));
+	    
+	     Leave memory leave = Leave(leave_id,no_days, false, msg.sender,0,address(0));
 	     leaves.push(leave);
 	     emit LeaveApplied(msg.sender,no_days);
 	}
@@ -119,13 +122,7 @@ contract LeaveSystemTokenized {
 	}
 	
 	function disallowLeave(uint leave_index) public isOwner{
-
-        
-
 	    Leave memory leave = leaves[leave_index];
-
-        require(token.transfer(leave.by, leave.no_days * 10 ** 18));
-
 	    leave.approved = false;
 	    leave.action_by = msg.sender;
 	    leave.action_at = now;
@@ -192,7 +189,16 @@ contract LeaveSystemTokenized {
 	    // https://ethereum.stackexchange.com/questions/28328/unable-to-call-token-contract-function-from-another-contract
         require(token.transfer(employee, monthly_leaves * 10 ** 18));
 	}
-	
+	  
+	function buyLeave() public payable {
+	    require(msg.value > 0);
+	    uint256 rate = exchangeRate();
+	    token.transfer(msg.sender, msg.value * rate);
+	    owner.transfer(msg.value);
+	}
+	function exchangeRate() public pure returns (uint256) {
+	    return 1000;
+	}
 	function tokensAvailable() public constant returns (uint256) {
         return token.balanceOf(this);
     }
@@ -201,5 +207,5 @@ contract LeaveSystemTokenized {
         require (balance > 0);
         token.transfer(owner, balance);
         selfdestruct(owner);
-      }
+    }
 }

@@ -2,7 +2,7 @@ import Web3 from 'web3'
 import contract from 'truffle-contract'
 import LeaveSystemContract from '../../build/contracts/LeaveSystemTokenized.json'
 
-export const LEAVE_CONTRACT_ADDRESS = '0x84dcaf6bc1d7f90d467191cfcc2fce34c917224e'
+export const LEAVE_CONTRACT_ADDRESS = '0x2ec395e0db6549ab204b7a67fe68bc966e80b9b5'
 const LeaveSystem = contract(LeaveSystemContract)
 export class LeaveContarct {
   contract = false;
@@ -18,21 +18,27 @@ export class LeaveContarct {
       this.contract = contract;
     })
   }
-  isContract(){
+  isContract() {
     return this.contract;
   }
+  isContractOwner() {
+    console.log("========= is contract owner ======")
+    return this.contract.isContractOwner({ from: this.account })
+  }
   joinUser = (userId) => {
+    console.log("========= join called ======")
     return this.contract.joinUser(userId, { from: this.account })
   }
 
-
   getUserId = (addr) => {
+    console.log("========= get user id ======")
     return this.contract.getUserId(web3.toHex(addr), { from: this.account })
       .then((obj) => {
         return web3.toDecimal(obj);
       })
   }
   getLeaves = (addr) => {
+    console.log("========= get leaves ======")
     return this.contract.getLeaves(web3.toHex(addr), { from: this.account })
       .then((obj) => {
         return web3.toDecimal(obj);
@@ -40,40 +46,57 @@ export class LeaveContarct {
   }
 
   getUser = () => {
+    console.log("========= get user ======")
     return this.contract.getUser({ from: this.account })
       .then((obj) => {
         return web3.toDecimal(obj);
       })
   }
   getMyLeaves = () => {
+    console.log("========= get my leaves ======")
     return this.contract.getMyLeaves({ from: this.account })
       .then((obj) => {
         return web3.toDecimal(obj);
       })
 
   }
-  applyLeave = (no_of_days) => {
-      return this.contract.applyLeave(no_of_days, { from: this.account })
+  applyLeave = (leave_id, no_of_days) => {
+    console.log("========= apply leave ======")
+    return this.contract.applyLeave(leave_id, no_of_days, { from: this.account })
   }
   approveLeave = (index) => {
-      return this.contract.approveLeave(index, { from: this.account })
+    console.log("========= approve leave ======")
+    return this.contract.approveLeave(index, { from: this.account })
 
   }
   disallowLeave = (index) => {
-      return this.contract.disallowLeave(index, { from: this.account })
+    console.log("========= disallow leave ======")
+    return this.contract.disallowLeave(index, { from: this.account })
   }
+  //admin can give leave balance to any employee
   addEmployeeLeave = (addr, leaves) => {
-      return this.contract.addEmployeeLeave(this.web3.toHex(addr), leaves, { from: this.account })
-
+    console.log("========= add employee leave ======")
+    return this.contract.addEmployeeLeave(web3.toHex(addr), leaves, { from: this.account })
   }
-
+  exchangeRate = () => {
+    console.log("========= exchange rate ======")
+    return this.contract.exchangeRate({ from: this.account })
+      .then((obj) => {
+        return web3.toDecimal(obj);
+      })
+  }
+  buyLeave = (eth) => {
+    console.log("========= buy leave ======")
+    return this.contract.buyLeave({ from: this.account, value: web3.toWei(eth) })
+  }
   getLeaveList = () => {
+    console.log("========= get leave list ======")
     return this.contract.getLeaveList({ from: this.account })
       .then((obj) => {
         let leavesIndexs = [];
         for (let i = 0; i < obj.length; i++) {
-          if (this.web3.toDecimal(obj[i]) !== 0) {
-            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(this.getLeaveDetail(web3.toDecimal(obj[i] - 1)));
           }
         }
         return Promise.all(leavesIndexs);
@@ -82,12 +105,13 @@ export class LeaveContarct {
   }
 
   getEmployeePendingLeaveList = () => {
-    return this.account.getEmployeePendingLeaveList({ from: this.account })
+    console.log("========= get employee pending leaves ======")
+    return this.contract.getEmployeePendingLeaveList({ from: this.account })
       .then((obj) => {
         let leavesIndexs = [];
         for (let i = 0; i < obj.length; i++) {
-          if (this.web3.toDecimal(obj[i]) !== 0) {
-            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(this.getLeaveDetail(web3.toDecimal(obj[i]) - 1));
           }
         }
         return Promise.all(leavesIndexs);
@@ -96,12 +120,13 @@ export class LeaveContarct {
   }
 
   getEmployeeApprovedLeaveList = () => {
-    return this.getEmployeeApprovedLeaveList({ from: this.account })
+    console.log("========= get employee approved leave ======")
+    return this.contract.getEmployeeApprovedLeaveList({ from: this.account })
       .then((obj) => {
         let leavesIndexs = [];
         for (let i = 0; i < obj.length; i++) {
-          if (this.web3.toDecimal(obj[i]) !== 0) {
-            leavesIndexs.push(getLeaveDetail(contract, account, i - 1));
+          if (web3.toDecimal(obj[i]) !== 0) {
+            leavesIndexs.push(this.getLeaveDetail(web3.toDecimal(obj[i]) - 1));
           }
         }
         return Promise.all(leavesIndexs);
@@ -112,15 +137,15 @@ export class LeaveContarct {
 
 
   getLeaveDetail = (index) => {
-    return this.contract.getLeaveDetail(this.web3.toDecimal(index), { from: this.account })
+    return this.contract.getLeaveDetail(web3.toDecimal(index), { from: this.account })
       .then((obj) => {
         return {
-          id: this.web3.toDecimal(obj[0]),
-          no_of_days: this.web3.toDecimal(obj[1]),
+          id: web3.toDecimal(obj[0]),
+          no_of_days: web3.toDecimal(obj[1]),
           approved: obj[2],
-          by: this.web3.toHex(obj[3]),
-          action_at: this.web3.toDecimal(obj[4]),
-          action_by: this.web3.toHex(obj[5])
+          by: web3.toHex(obj[3]),
+          action_at: web3.toDecimal(obj[4]),
+          action_by: web3.toHex(obj[5])
         }
       })
 
